@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aesthetic Chat Widget Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #fdfbfb;
+            --chat-bg: transparent;
+            --bar-color: #f3e8e8;
+            --bubble-color: #d8b4b4;
+            --cat-btn-color: #fce4ec; /* Rosa pálido por defecto */
+            --text-color: #4a4a4a;
+            --font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: var(--text-color);
+        }
+
+        .widget-container {
+            width: 360px;
+            height: 600px;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid #f0f0f0;
+            position: relative;
+        }
+
+        /* Cabecera */
+        .header {
+            background-color: var(--bar-color);
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .chat-title-btn {
+            font-weight: 600;
+            font-size: 1rem;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+        .chat-title-btn:hover { background: rgba(0,0,0,0.05); }
+        .chat-title-img-icon { width: 20px; height: 20px; border-radius: 4px; object-fit: cover; }
+
+        /* Área de Chat */
+        .chat-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-image: var(--chat-bg);
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
+        }
+
+        .chat-area::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
+            background-size: 20px 20px;
+            opacity: 0.5;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .message {
+            background-color: var(--bubble-color);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 18px;
+            border-bottom-right-radius: 4px;
+            max-width: 80%;
+            align-self: flex-end;
+            position: relative;
+            z-index: 1;
+            word-wrap: break-word;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .message img {
+            max-width: 100%;
+            border-radius: 12px;
+            cursor: pointer;
+            margin-bottom: 4px;
+        }
+
+        /* Recuadro de tiempo compacto */
+        .timestamp {
+            font-size: 0.65rem;
+            color: rgba(255, 255, 255, 0.9);
+            text-align: right;
+            margin-top: 4px;
+            display: block;
+            background: rgba(0, 0, 0, 0.15);
+            padding: 2px 6px;
+            border-radius: 10px;
+            width: fit-content;
+            float: right;
+            clear: both;
+        }
+
+        /* Barra Inferior */
+        .input-area {
+            padding: 16px;
+            background: white;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-top: 1px solid #f0f0f0;
+            z-index: 10;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            color: #9ca3af;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .icon-btn:hover { color: var(--text-color); }
+
+        .text-input {
+            flex: 1;
+            border: none;
+            background: #f3f4f6;
+            padding: 10px 16px;
+            border-radius: 20px;
+            outline: none;
+            font-family: inherit;
+            font-size: 0.9rem;
+        }
+
+        /* Botones de envío */
+        .category-send-btn {
+            background-color: var(--cat-btn-color);
+            color: #4a4a4a;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            transition: transform 0.1s;
+        }
+        .category-send-btn:active { transform: scale(0.95); }
+
+        .moon-send-btn {
+            background-color: var(--bubble-color);
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            transition: transform 0.1s;
+        }
+        .moon-send-btn:active { transform: scale(0.95); }
+
+        /* Menús y Modales (Ocultos por defecto) */
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            padding: 8px;
+            z-index: 50;
+            min-width: 150px;
+            border: 1px solid #f0f0f0;
+        }
+        .dropdown-menu.active { display: block; }
+        .dropdown-item {
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+        .dropdown-item:hover { background: #f3f4f6; }
+
+        /* Scrollbar invisible */
+        ::-webkit-scrollbar { width: 4px; }
+        ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 4px; }
+    </style>
+</head>
+<body>
+
+    <div class="widget-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="flex items-center gap-2">
+                <button class="chat-title-btn" id="chatTitleBtn" onclick="toggleChatMenu()">
+                    <span id="currentChatIcon">💬</span>
+                    <span id="currentChatName">Chat principal</span>
+                    <span class="text-xs text-gray-400">▼</span>
+                </button>
+            </div>
+            <div class="flex gap-3">
+                <button class="icon-btn" onclick="openSettings()">⚙️</button>
+                <button class="icon-btn" onclick="openCategoryManager()">📂</button>
+            </div>
+        </header>
+
+        <!-- Menú de selección de chat (dropdown del título) -->
+        <div id="chatMenu" class="dropdown-menu top-16 left-4">
+            <div class="dropdown-item" onclick="switchChat('main')">💬 Chat principal</div>
+            <!-- Las categorías dinámicas se insertan aquí -->
+            <div id="dynamicChatsList"></div>
+        </div>
+
+        <!-- Área de mensajes -->
+        <main class="chat-area" id="chatArea">
+            <!-- Mensaje de ejemplo -->
+            <div class="message">
+                Este es un mensaje de prueba en tu nuevo widget estético.
+                <div class="timestamp">10:00 p.m.</div>
+            </div>
+        </main>
+
+        <!-- Barra inferior -->
+        <footer class="input-area">
+            <button class="icon-btn" onclick="triggerImageUpload()">➕</button>
+            <input type="text" id="messageInput" class="text-input" placeholder="Escribe un mensaje..." onkeypress="handleKeyPress(event)">
+            
+            <!-- Botón Rosa para elegir categoría -->
+            <button class="category-send-btn" id="categorySendBtn" onclick="toggleCategorySendMenu()" title="Enviar a categoría específica">
+                ⭐
+            </button>
+            
+            <!-- Botón Luna para enviar al chat actual -->
+            <button class="moon-send-btn" onclick="sendMessage()" title="Enviar al chat actual">
+                🌙
+            </button>
+        </footer>
+
+        <!-- Menú de envío a categoría (desplegable sobre el botón rosa) -->
+        <div id="categorySendMenu" class="dropdown-menu bottom-16 right-16">
+            <div class="text-xs text-gray-400 mb-2 px-2">Enviar a...</div>
+            <div class="dropdown-item text-blue-500 font-medium" onclick="sendMessageTo('main')">💬 Chat principal</div>
+            <hr class="my-1 border-gray-100">
+            <div id="sendDynamicCategoriesList"></div>
+        </div>
+    </div>
+
+    <script>
+        // Lógica Básica de Interfaz
+        function toggleChatMenu() {
+            const menu = document.getElementById('chatMenu');
+            menu.classList.toggle('active');
+            document.getElementById('categorySendMenu').classList.remove('active');
+        }
+
+        function toggleCategorySendMenu() {
+            const menu = document.getElementById('categorySendMenu');
+            menu.classList.toggle('active');
+            document.getElementById('chatMenu').classList.remove('active');
+            renderSendCategories();
+        }
+
+        function getFormatTime() {
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            const ampm = hours >= 12 ? 'p.m.' : 'a.m.';
+            hours = hours % 12;
+            hours = hours ? hours : 12; 
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            return hours + ':' + minutes + ' ' + ampm;
+        }
+
+        function createMessageElement(text) {
+            const div = document.createElement('div');
+            div.className = 'message';
+            div.innerHTML = `
+                ${text}
+                <div class="timestamp">${getFormatTime()}</div>
+            `;
+            return div;
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const text = input.value.trim();
+            if (text) {
+                const chatArea = document.getElementById('chatArea');
+                chatArea.appendChild(createMessageElement(text));
+                input.value = '';
+                chatArea.scrollTop = chatArea.scrollHeight;
+            }
+        }
+
+        function sendMessageTo(categoryId) {
+            // Lógica para guardar el mensaje en la categoría seleccionada (localStorage)
+            // Visualmente, si estamos en esa categoría, lo mostramos:
+            sendMessage(); 
+            document.getElementById('categorySendMenu').classList.remove('active');
+            // Aquí iría la notificación de guardado exitoso
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function switchChat(chatId) {
+            document.getElementById('currentChatName').innerText = chatId === 'main' ? 'Chat principal' : 'Categoría';
+            document.getElementById('currentChatIcon').innerText = chatId === 'main' ? '💬' : '📁';
+            document.getElementById('chatMenu').classList.remove('active');
+            document.getElementById('chatArea').innerHTML = ''; // Limpiar y cargar historial real aquí
+        }
+
+        function triggerImageUpload() {
+            // Abre selector de archivos local para imágenes y posterior recorte
+            alert("Se abrirá el selector de imágenes de tu PC y el editor de recortes (cuadrado, círculo, corazón).");
+        }
+
+        function openSettings() {
+            // Abre panel de personalización de variables CSS
+            alert("Ajustes: Modifica el color rosa del botón, el fondo del chat, y más.");
+        }
+
+        function openCategoryManager() {
+            // Abre gestor para crear/editar categorías e iconos con imágenes
+            alert("Gestor de Categorías: Sube imágenes locales como iconos, renombra y cambia colores.");
+        }
+
+        function renderSendCategories() {
+            // Ejemplo de renderizado dinámico
+            const list = document.getElementById('sendDynamicCategoriesList');
+            list.innerHTML = `
+                <div class="dropdown-item" onclick="sendMessageTo('cat1')">📁 Favoritos</div>
+                <div class="dropdown-item" onclick="sendMessageTo('cat2')">📌 Notas</div>
+            `;
+        }
+
+        // Cierra menús al hacer clic fuera
+        document.addEventListener('click', (e) => {
+            if(!e.target.closest('#chatTitleBtn') && !e.target.closest('#chatMenu')) {
+                document.getElementById('chatMenu').classList.remove('active');
+            }
+            if(!e.target.closest('#categorySendBtn') && !e.target.closest('#categorySendMenu')) {
+                document.getElementById('categorySendMenu').classList.remove('active');
+            }
+        });
+    </script>
+</body>
+</html>
